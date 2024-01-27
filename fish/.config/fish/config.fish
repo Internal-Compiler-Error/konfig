@@ -3,3 +3,5 @@ if status is-interactive
 end
 
 umask 027
+
+zoxide init fish | source
