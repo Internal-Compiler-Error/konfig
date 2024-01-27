@@ -12,6 +12,7 @@
     "hyprland/workspaces": {
         // "disable-scroll": true,
         "all-outputs": true,
+        "format": "{icon}",
    //   //"warp-on-scroll": false,
    //   //"format": "{name}: {icon}",
    //   "format-icons": {
