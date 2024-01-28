@@ -5,3 +5,4 @@ end
 umask 027
 
 zoxide init fish | source
+set editor nvim
