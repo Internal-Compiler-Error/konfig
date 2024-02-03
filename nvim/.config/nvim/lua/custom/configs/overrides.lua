@@ -56,4 +56,11 @@ M.nvimtree = {
   },
 }
 
+M.gitsigns = {
+  current_line_blame = true,
+  current_line_blame_opts = {
+    delay = 100
+  }
+}
+
 return M
