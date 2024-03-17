@@ -58,6 +58,11 @@ local plugins = {
     build = function()
         vim.fn["firenvim#install"](0)
     end
+  },
+
+  {
+    "NvChad/nvterm",
+    enabled = false,
   }
 
   -- To make a plugin not be loaded

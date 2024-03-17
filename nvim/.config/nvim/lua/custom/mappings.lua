@@ -12,8 +12,15 @@ M.general = {
         require("conform").format()
       end,
       "formatting",
-    }
+    },
 
+    ["[b"] = {
+      "<cmd> bprevious <CR>", "previous buffer"
+    },
+
+    ["]b"] = {
+      "<cmd> bnext <CR>", "next buffer"
+    },
   },
   v = {
     [">"] = { ">gv", "indent"},

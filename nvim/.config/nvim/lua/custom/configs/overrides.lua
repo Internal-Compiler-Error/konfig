@@ -67,4 +67,9 @@ M.gitsigns = {
   }
 }
 
+M.conform = {
+  formatters_by_ft = {
+    rust = { "rustfmt" },
+  },
+}
 return M

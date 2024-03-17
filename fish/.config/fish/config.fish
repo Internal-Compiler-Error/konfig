@@ -13,3 +13,5 @@ zoxide init fish | source
 set editor nvim
 set GBM_BACKEND nvidia-drm
 set __GLX_VENDOR_LIBRARY_NAME nvidia
+
+set EDITOR nvim
