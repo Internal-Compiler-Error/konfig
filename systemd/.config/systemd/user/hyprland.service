@@ -1,0 +1,8 @@
+[Unit]
+Description=The best tiling window manager for wayland
+
+[Service]
+ExecStart=Hyprland
+
+[Install]
+WantedBy=graphical-session.target

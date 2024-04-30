@@ -1,0 +1,9 @@
+[Unit]
+Description=Polkit-KDE Authentication Agent
+PartOf=hyprland-session.target
+
+[Servie]
+ExecStart=/usr/lib/polkit-kde-authentication-agent-1
+
+[Install]
+WantedBy=hyprland-session.target

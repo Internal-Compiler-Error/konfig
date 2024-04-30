@@ -1,0 +1,9 @@
+[Unit]
+Description=A simple notification daemon
+PartOf=hyprland-session.target
+
+[Servie]
+ExecStart=dunst
+
+[Install]
+WantedBy=hyprland-session.target

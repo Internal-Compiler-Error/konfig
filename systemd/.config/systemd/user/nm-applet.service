@@ -1,0 +1,10 @@
+[Unit]
+Description=NetworkManager applet
+PartOf=hyprland-session.target
+
+[Service]
+ExecStart=nm-applet
+
+[Install]
+WantedBy=hyprland-session.target
+

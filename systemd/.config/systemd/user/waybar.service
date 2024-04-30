@@ -1,0 +1,10 @@
+[Unit]
+Description=Title bar
+PartOf=hyprland-session.target
+
+[Service]
+Type=simple
+ExecStart=waybar
+
+[Install]
+WantedBy=hyprland-session.target

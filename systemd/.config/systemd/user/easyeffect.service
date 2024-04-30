@@ -1,0 +1,9 @@
+[Unit]
+Description=Audio Effects Manager
+PartOf=hyprland-session.target
+
+[Service]
+ExecStart=easyeffects --gapplication-service
+
+[Install]
+WantedBy=hyprland-session.target
