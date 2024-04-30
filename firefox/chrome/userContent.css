@@ -1,0 +1,9 @@
+body p {
+    max-width: 50REM;
+    margin: 0 auto;
+}
+
+a:not(:has(*)):hover {
+    background-color: blue !important;
+    color: white !important;
+}
