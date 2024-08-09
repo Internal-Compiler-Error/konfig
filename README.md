@@ -1,3 +1,3 @@
 # konfig
 
-All the configs that I should have kept it in a mangaged place for a long time
+All the configs that I should have kept it in a managed place for a long time
