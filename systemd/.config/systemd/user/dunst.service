@@ -2,7 +2,7 @@
 Description=A simple notification daemon
 PartOf=hyprland-session.target
 
-[Servie]
+[Service]
 ExecStart=dunst
 
 [Install]
