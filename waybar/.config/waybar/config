@@ -7,7 +7,7 @@
     // Choose the order of the modules
     "modules-left": ["hyprland/workspaces"],
     "modules-center": ["hyprland/window"],
-    "modules-right": ["idle_inhibitor", "pulseaudio", "network", "cpu", "memory", "keyboard-state", "hyprland/language", "clock", "tray"],
+    "modules-right": ["mpd", "idle_inhibitor", "pulseaudio", "network", "cpu", "memory", "keyboard-state", "hyprland/language", "clock", "tray"],
     // Modules configuration
     "hyprland/workspaces": {
         // "disable-scroll": true,
@@ -73,10 +73,10 @@
         "spacing": 10
     },
     "clock": {
-        // "timezone": "America/New_York",
+        "timezone": "America/Toronto",
         "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
         "format-alt": "{:%Y-%m-%d}",
-        "format": "{:%I:%M %p}"
+        "format": "{:%OI:%M %p}"
     },
     "cpu": {
         "format": "{usage}% ",
@@ -115,3 +115,4 @@
     },
 }
 
+// vim: filetype=jsonc
