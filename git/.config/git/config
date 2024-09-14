@@ -1,8 +1,9 @@
 [user]
-	name = Liang Wang
-	email = liang.wang.ice@gmail.com
+    name = Liang Wang
+    email = liang.wang.ice@gmail.com
+
 [init]
-	defaultBranch = main
+    defaultBranch = main
 
 [core]
     pager = delta
@@ -19,5 +20,11 @@
 
 [diff]
     colorMoved = default
+
 [commit]
-	gpgsign = true
+    gpgsign = true
+
+[push]
+    autoSetupRemote = true
+
+# vim: et sw=4 ts=4
