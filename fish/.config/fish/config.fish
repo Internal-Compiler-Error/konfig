@@ -10,7 +10,6 @@ end
 umask 027
 
 zoxide init fish | source
-set -x GBM_BACKEND nvidia-drm
-set -x __GLX_VENDOR_LIBRARY_NAME nvidia
 
 set -x EDITOR nvim
+set -x RANGER_LOAD_DEFAULT_RC FALSE
