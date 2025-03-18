@@ -28,3 +28,5 @@
     autoSetupRemote = true
 
 # vim: et sw=4 ts=4
+[rerere]
+	enabled = true

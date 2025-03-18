@@ -13,3 +13,5 @@ zoxide init fish | source
 
 set -x EDITOR nvim
 set -x RANGER_LOAD_DEFAULT_RC FALSE
+set -x MANPAGER 'nvim +Man!'
+abbr --add ls eza
