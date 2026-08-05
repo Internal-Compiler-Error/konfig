@@ -7,12 +7,13 @@
     // Choose the order of the modules
     "modules-left": ["hyprland/workspaces"],
     "modules-center": ["hyprland/window"],
-    "modules-right": ["mpd", "idle_inhibitor", "pulseaudio", "network", "cpu", "memory", "keyboard-state", "hyprland/language", "clock", "tray"],
+    "modules-right": ["mpd", "idle_inhibitor", "privacy", "pulseaudio", "network", "cpu", "memory", "keyboard-state", "hyprland/language", "clock", "tray"],
     // Modules configuration
     "hyprland/workspaces": {
         // "disable-scroll": true,
-        "all-outputs": true,
+        "all-outputs": false,
         "format": "{icon}",
+        "show-special": true,
    //   //"warp-on-scroll": false,
    //   //"format": "{name}: {icon}",
    //   "format-icons": {
@@ -26,6 +27,27 @@
    //       "default": ""
    //   }
     },
+
+
+
+   "privacy": {
+      "modules": [
+        {
+          "type": "screenshare",
+          "icon-name": "screen-share-symbolic"
+        },
+        {
+          "type": "audio-in",
+          "icon-name": "microphone-sensitivity-high-symbolic"
+        }
+      ]
+   },
+
+
+
+
+
+
     "keyboard-state": {
         "numlock": true,
         "capslock": true,
@@ -69,7 +91,7 @@
         }
     },
     "tray": {
-        // "icon-size": 21,
+        "icon-size": 21,
         "spacing": 10
     },
     "clock": {
@@ -83,7 +105,9 @@
         "tooltip": false
     },
     "memory": {
-        "format": "{}% "
+        "interval": "5",
+        // "format": "{}% "
+        "format": "{used:0.1f}G/{total:0.1f}G "
     },
     "network": {
         // "interface": "wlp2*", // (Optional) To force the use of this interface

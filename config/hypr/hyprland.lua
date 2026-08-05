@@ -24,8 +24,8 @@ hl.env("QT_QPA_PLATFORM", "wayland;xcb")
 hl.env("SDL_VIDEODRIVER", "wayland")
 hl.env("CLUTTER_BACKEND", "wayland")
 hl.env("QT_AUTO_SCREEN_SCALE_FACTOR", "1")
--- hl.env("QT_QPA_PLATFORMTHEME", "qt6ct")
-hl.env("QT_QPA_PLATFORMTHEME", "hyprqt6engine")
+hl.env("QT_QPA_PLATFORMTHEME", "qt6ct")
+-- hl.env("QT_QPA_PLATFORMTHEME", "hyprqt6engine")
 
 -- Main config
 hl.config({
@@ -65,7 +65,7 @@ hl.config({
 	},
 
 	animations = {
-		enabled = false,
+		enabled = true,
 	},
 
 	dwindle = {
@@ -105,6 +105,35 @@ hl.config({
 	},
 })
 
+
+-- Default curves and animations, see https://wiki.hypr.land/Configuring/Advanced-and-Cool/Animations/
+hl.curve("easeOutQuint",   { type = "bezier", points = { {0.23, 1},    {0.32, 1}    } })
+hl.curve("easeInOutCubic", { type = "bezier", points = { {0.65, 0.05}, {0.36, 1}    } })
+hl.curve("linear",         { type = "bezier", points = { {0, 0},       {1, 1}       } })
+hl.curve("almostLinear",   { type = "bezier", points = { {0.5, 0.5},   {0.75, 1}    } })
+hl.curve("quick",          { type = "bezier", points = { {0.15, 0},    {0.1, 1}     } })
+
+-- Default springs
+hl.curve("easy",           { type = "spring", mass = 1, stiffness = 71.2633, dampening = 15.8273644 })
+
+hl.animation({ leaf = "global",        enabled = true,  speed = 10,   bezier = "default" })
+hl.animation({ leaf = "border",        enabled = true,  speed = 5.39, bezier = "easeOutQuint" })
+hl.animation({ leaf = "windows",       enabled = true,  speed = 4.79, spring = "easy" })
+hl.animation({ leaf = "windowsIn",     enabled = true,  speed = 4.1,  spring = "easy",         style = "popin 87%" })
+hl.animation({ leaf = "windowsOut",    enabled = true,  speed = 1.49, bezier = "linear",       style = "popin 87%" })
+hl.animation({ leaf = "fadeIn",        enabled = true,  speed = 1.73, bezier = "almostLinear" })
+hl.animation({ leaf = "fadeOut",       enabled = true,  speed = 1.46, bezier = "almostLinear" })
+hl.animation({ leaf = "fade",          enabled = true,  speed = 3.03, bezier = "quick" })
+hl.animation({ leaf = "layers",        enabled = true,  speed = 3.81, bezier = "easeOutQuint" })
+hl.animation({ leaf = "layersIn",      enabled = true,  speed = 4,    bezier = "easeOutQuint", style = "fade" })
+hl.animation({ leaf = "layersOut",     enabled = true,  speed = 1.5,  bezier = "linear",       style = "fade" })
+hl.animation({ leaf = "fadeLayersIn",  enabled = true,  speed = 1.79, bezier = "almostLinear" })
+hl.animation({ leaf = "fadeLayersOut", enabled = true,  speed = 1.39, bezier = "almostLinear" })
+hl.animation({ leaf = "workspaces",    enabled = true,  speed = 1.94, bezier = "almostLinear", style = "fade" })
+hl.animation({ leaf = "workspacesIn",  enabled = true,  speed = 1.21, bezier = "almostLinear", style = "fade" })
+hl.animation({ leaf = "workspacesOut", enabled = true,  speed = 1.94, bezier = "almostLinear", style = "fade" })
+hl.animation({ leaf = "zoomFactor",    enabled = true,  speed = 7,    bezier = "quick" })
+
 -- Autostart
 hl.on("hyprland.start", function()
 	hl.exec_cmd("dust")
@@ -113,7 +142,7 @@ hl.on("hyprland.start", function()
 	hl.exec_cmd("/usr/lib/polkit-kde-authentication-agent-1")
 	hl.exec_cmd("waybar")
 	hl.exec_cmd("hypridle")
-	hl.exec_cmd("openrgb --startminimized --profile /home/liangw/.config/OpenRGB/everything-off.orp") -- maybe we should do this in a systemd unit?
+	-- hl.exec_cmd("openrgb --startminimized --profile /home/liangw/.config/OpenRGB/everything-off.orp") -- maybe we should do this in a systemd unit?
 end)
 
 -- Window rules
@@ -137,7 +166,7 @@ hl.bind(main_mod .. " + delete", hl.dsp.exec_cmd("hyprlock"))
 hl.bind(main_mod .. " + SHIFT + delete", function()
 	hl.timer(function()
 		hl.dispatch(hl.dsp.dpms({ action = "disable" }))
-	end, { timeout = 100, type = "oneshot" })
+	end, { timeout = 200, type = "oneshot" })
 end)
 
 hl.bind(main_mod .. " + Q", hl.dsp.window.close())
@@ -220,53 +249,3 @@ for monitor, workspaces in pairs(monitor_workspaces) do
 		})
 	end
 end
-
--- hl.workspace_rule({
--- 	workspace = "1",
--- 	monitor = "DP-2",
--- })
---
--- hl.workspace_rule({
--- 	workspace = "2",
--- 	monitor = "DP-2",
--- })
---
--- hl.workspace_rule({
--- 	workspace = "3",
--- 	monitor = "DP-2",
--- })
---
--- hl.workspace_rule({
--- 	workspace = "4",
--- 	monitor = "DP-2",
--- })
---
--- hl.workspace_rule({
--- 	workspace = "5",
--- 	monitor = "DP-2",
--- })
---
--- hl.workspace_rule({
--- 	workspace = "6",
--- 	monitor = "DP-3",
--- })
---
--- hl.workspace_rule({
--- 	workspace = "7",
--- 	monitor = "DP-3",
--- })
---
--- hl.workspace_rule({
--- 	workspace = "8",
--- 	monitor = "DP-3",
--- })
---
--- hl.workspace_rule({
--- 	workspace = "9",
--- 	monitor = "DP-3",
--- })
---
--- hl.workspace_rule({
--- 	workspace = "10",
--- 	monitor = "DP-3",
--- })
