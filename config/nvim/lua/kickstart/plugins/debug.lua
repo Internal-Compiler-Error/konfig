@@ -145,18 +145,47 @@ return {
 		end,
 	},
 	{
-		"mxsdev/nvim-dap-vscode-js",
+		-- Shows variable values inline (as virtual text) while stopped in the debugger
+		"theHamsta/nvim-dap-virtual-text",
+		dependencies = { "mfussenegger/nvim-dap", "nvim-treesitter/nvim-treesitter" },
+		event = "VimEnter",
+		opts = { virt_text_pos = "eol" },
+	},
+	{
+		-- JS/TS debugging via vscode-js-debug's standalone DAP server (nvim-dap-vscode-js is unmaintained and
+		-- broken with current js-debug). VS Code's "node-terminal" type relies on VS Code's terminal API, so the
+		-- "JavaScript Debug Terminal" below emulates it: a pwa-node launch of your shell gets js-debug's
+		-- auto-attach bootloader injected via NODE_OPTIONS, so every node process started in it is debugged.
+		"microsoft/vscode-js-debug",
+		dependencies = { "mfussenegger/nvim-dap" },
 		event = "VimEnter", -- TODO: this probably can be run later
-		config = function()
-			require("dap-vscode-js").setup({
-				debugger_path = "/home/liangw/.local/share/nvim/lazy/vscode-js-debug", -- Path to vscode-js-debug installation. TODO: use user env
-				adapters = { "pwa-node", "pwa-chrome", "pwa-msedge", "node-terminal", "pwa-extensionHost" }, -- which adapters to register in nvim-dap
-			})
+		-- --ignore-scripts skips the postinstall Playwright browser download (test-only, fails on unsupported distros)
+		build = "npm install --legacy-peer-deps --ignore-scripts && npx gulp dapDebugServer",
+		config = function(plugin)
+			local dap = require("dap")
+			local server = plugin.dir .. "/dist/src/dapDebugServer.js"
+
+			for _, adapter in ipairs({ "pwa-node", "pwa-chrome", "pwa-msedge" }) do
+				dap.adapters[adapter] = {
+					type = "server",
+					host = "localhost",
+					port = "${port}",
+					executable = { command = "node", args = { server, "${port}" } },
+				}
+			end
 
 			local js_based_languages = { "typescript", "javascript", "typescriptreact", "javascriptreact" }
 
 			for _, language in ipairs(js_based_languages) do
-				require("dap").configurations[language] = {
+				dap.configurations[language] = {
+					{
+						type = "pwa-node",
+						request = "launch",
+						name = "JavaScript Debug Terminal",
+						runtimeExecutable = vim.o.shell,
+						console = "integratedTerminal",
+						cwd = "${workspaceFolder}",
+					},
 					{
 						type = "pwa-node",
 						request = "attach",
@@ -182,12 +211,6 @@ return {
 				}
 			end
 		end,
-		dependencies = {
-			{
-				"microsoft/vscode-js-debug",
-				build = "npm install --legacy-peer-deps && npx gulp vsDebugServerBundle && mv dist out",
-			},
-		},
 	},
 }
 

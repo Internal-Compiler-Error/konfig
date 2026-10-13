@@ -5,7 +5,7 @@ vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
 -- Set to true if you have a Nerd Font installed
-vim.g.have_nerd_font = true
+vim.g.have_nerd_font = false
 
 -- [[ Setting options ]]
 -- See `:help vim.opt`
@@ -195,6 +195,31 @@ vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower win
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
 vim.keymap.set('n', '<leader><leader>', '<C-^>', { desc = 'Toggle buffer' })
+
+-- Like <C-o>, but jumps back to the last location in a *different* buffer and closes the one we left
+-- (unless it has unsaved changes or is shown in another window)
+vim.keymap.set('n', '<C-M-o>', function()
+  local buf = vim.api.nvim_get_current_buf()
+  local jumps, idx = unpack(vim.fn.getjumplist())
+  local count
+  for i = idx, 1, -1 do
+    if jumps[i].bufnr ~= buf then
+      count = idx - i + 1
+      break
+    end
+  end
+  if not count then
+    vim.notify('No earlier jump in another buffer', vim.log.levels.WARN)
+    return
+  end
+
+  vim.cmd('execute "normal! ' .. count .. '\\<C-o>"')
+  if vim.api.nvim_get_current_buf() == buf or vim.bo[buf].modified or #vim.fn.win_findbuf(buf) > 0 then
+    return
+  end
+  -- Wipe (not just delete) so its entries also leave the jumplist
+  pcall(vim.api.nvim_buf_delete, buf, {})
+end, { desc = 'Jump back to previous buffer and close this one' })
 
 -- paste from yank buffer instead of the default buffer
 vim.keymap.set('n', 'gp', '"0p', { noremap = true, silent = true })
@@ -936,6 +961,7 @@ require('lazy').setup({
       'hrsh7th/cmp-buffer',
       'hrsh7th/cmp-cmdline',
       'hrsh7th/cmp-nvim-lsp-document-symbol',
+      'rcarriga/cmp-dap',
     },
     config = function()
       -- See `:help cmp`
@@ -944,6 +970,13 @@ require('lazy').setup({
       luasnip.config.setup {}
 
       cmp.setup {
+        -- Same as the default, but also allow the dap REPL (a prompt buffer)
+        enabled = function()
+          if vim.fn.reg_recording() ~= '' or vim.fn.reg_executing() ~= '' then
+            return false
+          end
+          return vim.api.nvim_get_option_value('buftype', { buf = 0 }) ~= 'prompt' or require('cmp_dap').is_dap_buffer()
+        end,
         snippet = {
           expand = function(args)
             luasnip.lsp_expand(args.body)
@@ -1014,6 +1047,13 @@ require('lazy').setup({
         pair_cmp.on_confirm_done()
       end)
 
+      -- Completions from the debug adapter (evaluated in the current frame) in the dap REPL and dap-ui
+      cmp.setup.filetype({ 'dap-repl', 'dapui_watches', 'dapui_hover' }, {
+        sources = {
+          { name = 'dap' },
+        },
+      })
+
       cmp.setup.cmdline({ '/', '?' }, {
         mapping = cmp.mapping.preset.cmdline(),
         sources = {
@@ -1083,8 +1123,7 @@ require('lazy').setup({
   },
 
   { -- Highlight, edit, and navigate code
-    'neovim-treesitter/nvim-treesitter',
-    dependencies = { 'neovim-treesitter/treesitter-parser-registry' },
+    'nvim-treesitter/nvim-treesitter',
     branch = 'main',
     build = ':TSUpdate',
     lazy = false,
@@ -1095,7 +1134,26 @@ require('lazy').setup({
   require 'kickstart.plugins.autopairs',
 
   -- make resolving diff conflicts less painful
-  { 'sindrets/diffview.nvim' },
+  {
+    'sindrets/diffview.nvim',
+    cmd = { 'DiffviewOpen', 'DiffviewClose', 'DiffviewFileHistory', 'DiffviewToggleFiles' },
+    keys = {
+      { '<leader>gd', '<cmd>DiffviewOpen<CR>', desc = '[G]it [D]iff view (also shows merge conflicts)' },
+      { '<leader>gh', '<cmd>DiffviewFileHistory %<CR>', desc = '[G]it file [H]istory' },
+      { '<leader>gH', '<cmd>DiffviewFileHistory<CR>', desc = '[G]it branch [H]istory' },
+      { '<leader>gq', '<cmd>DiffviewClose<CR>', desc = '[G]it diff view [Q]uit' },
+    },
+    opts = {
+      enhanced_diff_hl = true,
+      view = {
+        merge_tool = {
+          -- OURS | BASE | THEIRS on top, MERGED result below
+          layout = 'diff4_mixed',
+          disable_diagnostics = true,
+        },
+      },
+    },
+  },
 
   -- { "danilamihailov/beacon.nvim" },
 
@@ -1256,9 +1314,9 @@ math.randomseed(os.time())
 local themes = {
   -- "gruvbox",
   -- 'gruvbox-material',
-  -- 'gruvbox-baby',
+  'gruvbox-baby',
   -- "rose-pine",
-  "everforest",
+  -- "everforest",
   -- "tokyonight",
   -- "kanagawa",
   -- "catppuccin",
@@ -1290,7 +1348,7 @@ local function apply_time_based_background()
   end
   local hour = tonumber(os.date '%H')
   local is_day = hour >= vim.g.day_start_hour and hour < vim.g.night_start_hour
-  vim.opt.background = is_day and 'light' or 'dark'
+  vim.opt.background = 'dark'
 end
 
 vim.api.nvim_create_autocmd('OptionSet', {
