@@ -455,7 +455,6 @@ require('lazy').setup({
         end,
       },
       { 'nvim-telescope/telescope-ui-select.nvim' },
-      { 'nvim-telescope/telescope-live-grep-args.nvim', version = '^1.0.0' },
       { 'debugloop/telescope-undo.nvim' },
       { 'nvim-telescope/telescope-dap.nvim' },
 
@@ -504,18 +503,6 @@ require('lazy').setup({
           cache_picker = { num_pickers = 20 },
         },
         pickers = {
-          find_files = {
-            find_command = {
-              'rg',
-              '--files',
-              '--hidden',
-              '--ignore-file', '.gitignore',
-
-              '--glob', '!**/.git/*',
-              '--glob', '!**/.idea/*',
-              '--glob', '!**/node_modules/*',
-            },
-          },
           buffers = {
             mappings = {
               i = {
@@ -528,15 +515,6 @@ require('lazy').setup({
           ['ui-select'] = {
             require('telescope.themes').get_dropdown(),
           },
-          live_grep_args = {
-            auto_quoting = true,
-            mappings = {
-              i = {
-                ['<C-k>'] = require('telescope-live-grep-args.actions').quote_prompt(),
-                ['<C-i>'] = require('telescope-live-grep-args.actions').quote_prompt { postfix = ' --iglob ' },
-              },
-            },
-          },
           undo = {
             side_by_side = true,
           },
@@ -546,7 +524,6 @@ require('lazy').setup({
       -- Enable telescope extensions, if they are installed
       pcall(require('telescope').load_extension, 'fzf')
       pcall(require('telescope').load_extension, 'ui-select')
-      pcall(require('telescope').load_extension, 'live_grep_args')
       pcall(require('telescope').load_extension, 'undo')
       pcall(require('telescope').load_extension, 'dap')
 
@@ -576,21 +553,24 @@ require('lazy').setup({
 
       vim.keymap.set('n', '<leader>sh', resumable(builtin.help_tags, { prompt_title = 'Help' }), { desc = '[S]earch [H]elp' })
       vim.keymap.set('n', '<leader>sk', resumable(builtin.keymaps, { prompt_title = 'Key Maps' }), { desc = '[S]earch [K]eymaps' })
-      vim.keymap.set('n', '<leader>sf', resumable(builtin.find_files, { prompt_title = 'Find Files' }), { desc = '[S]earch [F]iles' })
       vim.keymap.set('n', '<leader>st', resumable(builtin.builtin, { prompt_title = 'Builtin Pickers' }), { desc = '[S]earch [T]elescope pickers' })
-      vim.keymap.set('n', '<leader>sw', resumable(builtin.grep_string, { prompt_title = 'Grep String' }), { desc = '[S]earch current [W]ord' })
-      -- live_grep_args lets you type rg flags straight into the prompt (e.g. `-t py foo`);
-      -- <C-k> quotes the current prompt, <C-i> quotes it and appends --iglob.
-      vim.keymap.set(
-        'n',
-        '<leader>sg',
-        resumable(function(opts)
-          require('telescope').extensions.live_grep_args.live_grep_args(opts)
-        end, { prompt_title = 'Live Grep' }),
-        { desc = '[S]earch by [G]rep' }
-      )
       vim.keymap.set('n', '<leader>sD', resumable(builtin.diagnostics, { prompt_title = 'Workspace Diagnostics' }), { desc = '[S]earch [D]iagnostics' })
-      vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
+      -- <leader>sr resumes whichever picker (telescope or fff) was opened last,
+      -- detected via the filetype each one sets on its prompt buffer.
+      local last_picker = 'telescope'
+      vim.api.nvim_create_autocmd('FileType', {
+        group = vim.api.nvim_create_augroup('last-picker', { clear = true }),
+        pattern = { 'TelescopePrompt', 'fff_input' },
+        callback = function(ev)
+          last_picker = ev.match == 'fff_input' and 'fff' or 'telescope'
+        end,
+      })
+      vim.keymap.set('n', '<leader>sr', function()
+        if last_picker == 'fff' and require('fff').resume() then
+          return
+        end
+        builtin.resume()
+      end, { desc = '[S]earch [R]esume' })
       vim.keymap.set('n', '<leader>s.', resumable(builtin.oldfiles, { prompt_title = 'Oldfiles' }), { desc = '[S]earch Recent Files ("." for repeat)' })
       vim.keymap.set('n', '<leader>sb', resumable(builtin.buffers, { prompt_title = 'Buffers' }), { desc = '[S]earch existing buffers' })
       vim.keymap.set('n', '<leader>su', '<cmd>Telescope undo<CR>', { desc = '[S]earch [U]ndo history' })
@@ -626,16 +606,33 @@ require('lazy').setup({
         { desc = '[S]earch [/] in Open Files' }
       )
 
-      -- Shortcut for searching your neovim configuration files
-      vim.keymap.set(
-        'n',
-        '<leader>sn',
-        resumable(function(opts)
-          builtin.find_files(vim.tbl_extend('force', { cwd = vim.fn.stdpath 'config' }, opts))
-        end, { prompt_title = 'Neovim Config Files' }),
-        { desc = '[S]earch [N]eovim files' }
-      )
     end,
+  },
+
+  { -- Fast file finder (replaces telescope find_files / rg --files)
+    'dmtrKovalenko/fff',
+    dependencies = {
+      { -- Image rendering (kitty graphics protocol); used by fff's image preview
+        'folke/snacks.nvim',
+        priority = 1000,
+        lazy = false,
+        opts = {
+          image = { enabled = true },
+        },
+      },
+    },
+    build = function()
+      -- downloads a prebuilt binary or falls back to cargo build
+      require('fff.download').download_or_build_binary()
+    end,
+    lazy = false, -- the plugin lazy-initialises itself
+    keys = {
+      -- `resume = true` reopens the last picker of that kind with its query, or a fresh one
+      { '<leader>sf', function() require('fff').find_files { resume = true } end, desc = '[S]earch [F]iles' },
+      { '<leader>sg', function() require('fff').live_grep { resume = true } end, desc = '[S]earch by [G]rep' },
+      { '<leader>sw', function() require('fff').live_grep_under_cursor() end, mode = { 'n', 'x' }, desc = '[S]earch current [W]ord' },
+      { '<leader>sn', function() require('fff').find_files_in_dir(vim.fn.stdpath 'config') end, desc = '[S]earch [N]eovim files' },
+    },
   },
 
   { -- LSP Configuration & Plugins
