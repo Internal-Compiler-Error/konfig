@@ -136,7 +136,7 @@ hl.animation({ leaf = "zoomFactor",    enabled = true,  speed = 7,    bezier = "
 
 -- Autostart
 hl.on("hyprland.start", function()
-	hl.exec_cmd("dust")
+	hl.exec_cmd("dunst")
 	hl.exec_cmd("easyeffects --service-mode")
 	hl.exec_cmd("nm-applet")
 	hl.exec_cmd("/usr/lib/polkit-kde-authentication-agent-1")
