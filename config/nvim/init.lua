@@ -489,9 +489,22 @@ require('lazy').setup({
         --  All the info you're looking for is in `:help telescope.setup()`
         --
         defaults = {
-          -- mappings = {
-          --   i = { ['<c-enter>'] = 'to_fuzzy_refine' },
-          -- },
+          -- Match fff: <C-u> clears the prompt (native insert-mode <C-u>),
+          -- preview scrolls with <C-b>/<C-f>.
+          mappings = {
+            i = {
+              ['<C-u>'] = false,
+              ['<C-d>'] = false,
+              ['<C-b>'] = actions.preview_scrolling_up,
+              ['<C-f>'] = actions.preview_scrolling_down,
+            },
+            n = {
+              ['<C-u>'] = false,
+              ['<C-d>'] = false,
+              ['<C-b>'] = actions.preview_scrolling_up,
+              ['<C-f>'] = actions.preview_scrolling_down,
+            },
+          },
           -- vimgrep_arguments = {
           -- 	"rg",
           -- 	"--follow",
@@ -554,7 +567,8 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>sh', resumable(builtin.help_tags, { prompt_title = 'Help' }), { desc = '[S]earch [H]elp' })
       vim.keymap.set('n', '<leader>sk', resumable(builtin.keymaps, { prompt_title = 'Key Maps' }), { desc = '[S]earch [K]eymaps' })
       vim.keymap.set('n', '<leader>st', resumable(builtin.builtin, { prompt_title = 'Builtin Pickers' }), { desc = '[S]earch [T]elescope pickers' })
-      vim.keymap.set('n', '<leader>sD', resumable(builtin.diagnostics, { prompt_title = 'Workspace Diagnostics' }), { desc = '[S]earch [D]iagnostics' })
+      -- Not resumable: a resumed picker keeps the diagnostics from when it was first opened.
+      vim.keymap.set('n', '<leader>sD', builtin.diagnostics, { desc = '[S]earch [D]iagnostics' })
       -- <leader>sr resumes whichever picker (telescope or fff) was opened last,
       -- detected via the filetype each one sets on its prompt buffer.
       local last_picker = 'telescope'
@@ -571,8 +585,9 @@ require('lazy').setup({
         end
         builtin.resume()
       end, { desc = '[S]earch [R]esume' })
-      vim.keymap.set('n', '<leader>s.', resumable(builtin.oldfiles, { prompt_title = 'Oldfiles' }), { desc = '[S]earch Recent Files ("." for repeat)' })
-      vim.keymap.set('n', '<leader>sb', resumable(builtin.buffers, { prompt_title = 'Buffers' }), { desc = '[S]earch existing buffers' })
+      -- Not resumable: a resumed picker keeps the file/buffer list from when it was first opened.
+      vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
+      vim.keymap.set('n', '<leader>sb', builtin.buffers, { desc = '[S]earch existing buffers' })
       vim.keymap.set('n', '<leader>su', '<cmd>Telescope undo<CR>', { desc = '[S]earch [U]ndo history' })
 
       -- Slightly advanced example of overriding default behavior and theme
@@ -626,6 +641,14 @@ require('lazy').setup({
       require('fff.download').download_or_build_binary()
     end,
     lazy = false, -- the plugin lazy-initialises itself
+    opts = {
+      keymaps = {
+        -- <C-u> clears the prompt like in a shell; preview scrolling moves to vim's page keys
+        clear_query = '<C-u>',
+        preview_scroll_up = '<C-b>',
+        preview_scroll_down = '<C-f>',
+      },
+    },
     keys = {
       -- `resume = true` reopens the last picker of that kind with its query, or a fresh one
       { '<leader>sf', function() require('fff').find_files { resume = true } end, desc = '[S]earch [F]iles' },
@@ -1124,6 +1147,15 @@ require('lazy').setup({
     branch = 'main',
     build = ':TSUpdate',
     lazy = false,
+    init = function()
+      -- the main branch doesn't enable highlighting itself; without this,
+      -- buffers fall back to legacy regex syntax
+      vim.api.nvim_create_autocmd('FileType', {
+        callback = function(args)
+          pcall(vim.treesitter.start, args.buf) -- skips filetypes without a parser
+        end,
+      })
+    end,
   },
 
   require 'kickstart.plugins.debug',
