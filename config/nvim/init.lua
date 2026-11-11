@@ -196,30 +196,7 @@ vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper win
 
 vim.keymap.set('n', '<leader><leader>', '<C-^>', { desc = 'Toggle buffer' })
 
--- Like <C-o>, but jumps back to the last location in a *different* buffer and closes the one we left
--- (unless it has unsaved changes or is shown in another window)
-vim.keymap.set('n', '<C-M-o>', function()
-  local buf = vim.api.nvim_get_current_buf()
-  local jumps, idx = unpack(vim.fn.getjumplist())
-  local count
-  for i = idx, 1, -1 do
-    if jumps[i].bufnr ~= buf then
-      count = idx - i + 1
-      break
-    end
-  end
-  if not count then
-    vim.notify('No earlier jump in another buffer', vim.log.levels.WARN)
-    return
-  end
-
-  vim.cmd('execute "normal! ' .. count .. '\\<C-o>"')
-  if vim.api.nvim_get_current_buf() == buf or vim.bo[buf].modified or #vim.fn.win_findbuf(buf) > 0 then
-    return
-  end
-  -- Wipe (not just delete) so its entries also leave the jumplist
-  pcall(vim.api.nvim_buf_delete, buf, {})
-end, { desc = 'Jump back to previous buffer and close this one' })
+local jump = require 'custom.jump' -- JetBrains-style navigation history, see lua/custom/jump.lua
 
 -- paste from yank buffer instead of the default buffer
 vim.keymap.set('n', 'gp', '"0p', { noremap = true, silent = true })
@@ -651,10 +628,10 @@ require('lazy').setup({
     },
     keys = {
       -- `resume = true` reopens the last picker of that kind with its query, or a fresh one
-      { '<leader>sf', function() require('fff').find_files { resume = true } end, desc = '[S]earch [F]iles' },
-      { '<leader>sg', function() require('fff').live_grep { resume = true } end, desc = '[S]earch by [G]rep' },
-      { '<leader>sw', function() require('fff').live_grep_under_cursor() end, mode = { 'n', 'x' }, desc = '[S]earch current [W]ord' },
-      { '<leader>sn', function() require('fff').find_files_in_dir(vim.fn.stdpath 'config') end, desc = '[S]earch [N]eovim files' },
+      { '<leader>sf', jump.from_here(function() require('fff').find_files { resume = true } end), desc = '[S]earch [F]iles' },
+      { '<leader>sg', jump.from_here(function() require('fff').live_grep { resume = true } end), desc = '[S]earch by [G]rep' },
+      { '<leader>sw', jump.from_here(function() require('fff').live_grep_under_cursor() end), mode = { 'n', 'x' }, desc = '[S]earch current [W]ord' },
+      { '<leader>sn', jump.from_here(function() require('fff').find_files_in_dir(vim.fn.stdpath 'config') end), desc = '[S]earch [N]eovim files' },
     },
   },
 
