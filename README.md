@@ -5,7 +5,6 @@ deploy targets directly — no per-package nesting, no `<pkg>/.config/<pkg>/...`
 
 ```
 config/<pkg>/...   -> ~/.config/<pkg>/...
-home/gnupg/*.conf  -> ~/.gnupg/*.conf     (individual files only, see below)
 ```
 
 ## Install
@@ -24,23 +23,13 @@ paru -S dotter-rs-bin   # or build from source: cargo install dotter
    ```toml
    packages = [
        "alacritty",
-       "fish",
        "fontconfig",
-       "git",
-       "gnupg",
-       "hypr",
        "kitty",
-       "ncmpcpp",
        "newsraft",
        "nvim",
-       "systemd",
        "tealdeer",
-       "tmux",
-       "waybar",
    ]
    ```
-
-   A headless box, for instance, would drop `hypr` and `waybar`.
 
 3. Preview before touching anything:
 
@@ -56,10 +45,10 @@ paru -S dotter-rs-bin   # or build from source: cargo install dotter
 
 ## Day to day
 
-- **Edit configs directly in the repo** (`config/fish/config.fish`, etc.) — they're
+- **Edit configs directly in the repo** (`config/nvim/init.lua`, etc.) — they're
   deployed as real symlinks, so changes are live immediately, no redeploy needed.
 - **Adding a new file to an already-linked package** — nothing to do. dotter maps
-  whole directories, so anything you add under `config/fish/` is picked up on the
+  whole directories, so anything you add under `config/nvim/` is picked up on the
   next `dotter deploy` (idempotent — safe to run anytime, it no-ops if nothing changed).
 - **Adding a new package** — add a `[<pkg>.files]` table to `.dotter/global.toml`
   mapping repo path to target, add `<pkg>` to `.dotter/local.toml`'s `packages`
@@ -86,25 +75,6 @@ If you add a new package, copy that pattern:
 
 not the bare-string shorthand (`"config/somepkg" = "~/.config/somepkg"`), unless you've
 checked nothing inside contains `{{`.
-
-**`gnupg` is linked file-by-file, never as a directory.** `~/.gnupg` holds live
-keyrings (`private-keys-v1.d/`, `trustdb.gpg`, etc.) that must never be replaced by
-a symlink into the repo. Only the two config files are mapped:
-
-```toml
-[gnupg.files]
-"home/gnupg/common.conf" = { target = "~/.gnupg/common.conf", type = "symbolic" }
-"home/gnupg/gpg-agent.conf" = { target = "~/.gnupg/gpg-agent.conf", type = "symbolic" }
-```
-
-If you add another gnupg config, add it the same way — don't map the directory.
-
-**`systemd` units are listed individually, not as a directory.** `~/.config/systemd/user/`
-also contains `hyprland-session.target.wants/`, a tree of absolute symlinks that
-`systemctl --user enable` generates and manages. dotter can't safely walk that (it
-errors on symlinks whose target doesn't currently resolve), and enablement state
-isn't this repo's concern anyway — that's what `systemctl --user enable <unit>` is for.
-After deploying new units: `systemctl --user daemon-reload`.
 
 ## Packages with unresolved drift
 
