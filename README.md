@@ -78,7 +78,7 @@ checked nothing inside contains `{{`.
 
 ## Packages with unresolved drift
 
-`fontconfig`, `kitty`, `newsraft`, and `nvim` had real (non-symlink) files already
+`fontconfig` and `newsraft` had real (non-symlink) files already
 sitting in `~/.config` when this repo was restructured, with content that had
 diverged from what's tracked here. `dotter deploy` will refuse to touch those specific
 files rather than guess which side is right — it prints `already exists and isn't a
